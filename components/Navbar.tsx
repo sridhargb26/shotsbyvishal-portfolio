@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Instagram } from "lucide-react";
 
 const links = [
   { href: "/", label: "Home" },
@@ -18,95 +17,53 @@ export default function Navbar() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 40);
+    const handleScroll = () => setScrolled(window.scrollY > 60);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <>
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled ? "bg-ink/90 backdrop-blur-md border-b border-bone/10" : ""
-        }`}
-      >
-        <div className="flex items-center justify-between px-8 md:px-14 py-6">
-          <Link href="/" className="font-display text-2xl tracking-wider text-bone hover:text-gold transition-colors">
-            SBV
-          </Link>
+      <nav style={{
+        position:"fixed", top:0, left:0, right:0, zIndex:50,
+        padding:"28px clamp(24px,5vw,56px)",
+        display:"flex", justifyContent:"space-between", alignItems:"center",
+        transition:"all 0.5s",
+        background: scrolled ? "rgba(10,10,10,0.93)" : "transparent",
+        backdropFilter: scrolled ? "blur(14px)" : "none",
+        borderBottom: scrolled ? "1px solid rgba(240,235,226,0.06)" : "none",
+      }}>
+        <Link href="/" style={{ textDecoration:"none" }}>
+          <div style={{ display:"flex", flexDirection:"column", lineHeight:1, gap:"3px" }}>
+            <span className="font-display" style={{ fontSize:"20px", letterSpacing:"0.12em", color:"var(--bone)" }}>SHOTS BY</span>
+            <span className="font-serif-custom" style={{ fontSize:"11px", letterSpacing:"0.4em", color:"var(--gold)", fontStyle:"italic" }}>VISHAL</span>
+          </div>
+        </Link>
 
-          {/* Desktop links */}
-          <ul className="hidden md:flex items-center gap-10">
-            {links.map((l) => (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  className={`font-sans text-[11px] tracking-[0.2em] uppercase transition-colors duration-300 ${
-                    pathname === l.href ? "text-gold" : "text-bone/60 hover:text-bone"
-                  }`}
-                >
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <a
-                href="https://www.instagram.com/shotsbyvishal/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-bone/60 hover:text-gold transition-colors"
-              >
-                <Instagram size={16} />
-              </a>
+        <ul style={{ display:"flex", gap:"36px", listStyle:"none", margin:0, padding:0, alignItems:"center" }}>
+          {links.map((l) => (
+            <li key={l.href}>
+              <Link href={l.href} className={`nav-link${pathname === l.href ? " active" : ""}`}>{l.label}</Link>
             </li>
-          </ul>
-
-          {/* Mobile menu button */}
-          <button
-            className="md:hidden text-bone"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
+          ))}
+          <li>
+            <a href="https://www.instagram.com/shotsbyvishal/" target="_blank" rel="noopener noreferrer" className="nav-instagram">@sbv</a>
+          </li>
+        </ul>
       </nav>
 
-      {/* Mobile menu */}
       <AnimatePresence>
         {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: "100%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: "100%" }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="fixed inset-0 z-40 bg-ink flex flex-col items-center justify-center gap-10"
-          >
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            style={{ position:"fixed", inset:0, zIndex:40, background:"rgba(10,10,10,0.98)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"32px" }}>
             {links.map((l, i) => (
-              <motion.div
-                key={l.href}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.07 }}
-              >
-                <Link
-                  href={l.href}
-                  onClick={() => setMenuOpen(false)}
-                  className={`font-display text-5xl transition-colors ${
-                    pathname === l.href ? "text-gold" : "text-bone/60 hover:text-bone"
-                  }`}
-                >
+              <motion.div key={l.href} initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay: i * 0.08 }}>
+                <Link href={l.href} onClick={() => setMenuOpen(false)}
+                  className="font-display" style={{ fontSize:"3.5rem", letterSpacing:"0.1em", color: pathname === l.href ? "var(--gold)" : "rgba(240,235,226,0.6)", textDecoration:"none" }}>
                   {l.label}
                 </Link>
               </motion.div>
             ))}
-            <a
-              href="https://www.instagram.com/shotsbyvishal/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-bone/40 hover:text-gold transition-colors mt-4"
-            >
-              <Instagram size={22} />
-            </a>
           </motion.div>
         )}
       </AnimatePresence>
