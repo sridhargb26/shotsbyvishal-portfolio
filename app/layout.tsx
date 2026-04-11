@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Playfair_Display, DM_Sans } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import CustomCursor from "@/components/CustomCursor";
 
 const bebas = Bebas_Neue({
   weight: "400",
@@ -41,12 +38,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${bebas.variable} ${playfair.variable} ${dmSans.variable}`}>
-      <body>
-        <CustomCursor />
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
