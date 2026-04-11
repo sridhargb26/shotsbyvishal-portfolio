@@ -3,34 +3,18 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useRef } from "react";
+import type { Photo, SiteSettings } from "@/content/types";
 
-interface Photo {
-  _id: string; title: string; category: string; imageUrl: string; width: number; height: number;
-}
-interface Settings {
-  name?: string; tagline?: string; heroCategories?: string; email?: string;
-  instagram?: string; heroImage?: any; publications?: { name: string; issue: string; url?: string }[];
-}
-
-const fallbackPhotos = [
-  { _id:"1", title:"NISCHITHA", category:"Portrait", imageUrl:"https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&q=80", width:800, height:1000 },
-  { _id:"2", title:"Street Style", category:"Street", imageUrl:"https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&q=80", width:800, height:600 },
-  { _id:"3", title:"In Solitude", category:"Editorial", imageUrl:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80", width:800, height:1000 },
-  { _id:"4", title:"WAVES", category:"Fashion", imageUrl:"https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&q=80", width:800, height:600 },
-  { _id:"5", title:"MIRA", category:"B&W", imageUrl:"https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80", width:800, height:1000 },
-];
-
-const fallbackPublications = [
-  { name:"Elléments Magazine", issue:"WAVES Editorial" },
-  { name:"7HuesMag", issue:"In Solitude" },
-  { name:"Mob Journal", issue:"NISCHITHA" },
-  { name:"SoleDXB", issue:"Street Style" },
-];
-
-export default function HomeClient({ settings, featured }: { settings: Settings; featured: Photo[] }) {
-  const photos = featured.length > 0 ? featured : fallbackPhotos;
-  const publications = settings.publications?.length ? settings.publications : fallbackPublications;
-  const heroImage = settings.heroImage?.asset?.url || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1800&q=80";
+export default function HomeClient({
+  settings,
+  featured,
+}: {
+  settings: SiteSettings;
+  featured: Photo[];
+}) {
+  const photos = featured;
+  const publications = settings.publications;
+  const heroImage = settings.heroImageUrl;
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);

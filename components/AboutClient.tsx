@@ -3,32 +3,11 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { Instagram, ExternalLink } from "lucide-react";
-import { PortableText } from "next-sanity";
+import type { SiteSettings } from "@/content/types";
 
-const fallbackSettings = {
-  name: "Vishal Dey",
-  heroCategories: "Editorial · Portrait · Street",
-  email: "vishal@shotsbyvishal.com",
-  instagram: "https://www.instagram.com/shotsbyvishal/",
-  behance: "https://www.behance.net/shotsbyvishal",
-  profileImage: null,
-  stats: [
-    { value: "5+", label: "Years Shooting" },
-    { value: "4+", label: "Publications" },
-    { value: "∞", label: "Stories Told" },
-  ],
-  publications: [
-    { name: "Elléments Magazine", issue: "WAVES Editorial", url: "" },
-    { name: "7HuesMag", issue: "In Solitude", url: "" },
-    { name: "Mob Journal", issue: "NISCHITHA · THE ART OF BEING", url: "" },
-    { name: "SoleDXB", issue: "Street Style Coverage", url: "" },
-  ],
-  bio: null,
-};
-
-export default function AboutClient({ settings }: { settings: any }) {
-  const s = { ...fallbackSettings, ...settings };
-  const profileImg = s.profileImage?.asset?.url || "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=900&q=80";
+export default function AboutClient({ settings }: { settings: SiteSettings }) {
+  const s = settings;
+  const profileImg = s.profileImageUrl;
 
   return (
     <div className="pt-28 pb-24 px-6 md:px-14">
@@ -47,15 +26,9 @@ export default function AboutClient({ settings }: { settings: any }) {
         <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.3 }}
           className="flex flex-col justify-center gap-8">
           <div className="font-sans font-light text-bone/70 leading-relaxed text-base space-y-4">
-            {s.bio ? (
-              <PortableText value={s.bio} />
-            ) : (
-              <>
-                <p>I&apos;m {s.name} — a photographer with an eye for the quiet, the raw, and the cinematic. My work spans editorial portraiture, street photography, and fashion, always searching for the moment where light and emotion collide.</p>
-                <p>Having been published in magazines like <em className="text-bone italic">Elléments</em> and <em className="text-bone italic">7HuesMag</em>, I bring a magazine-level sensibility to every frame — whether in a studio or on the streets of a city.</p>
-                <p>Photography, for me, is less about the camera and more about presence — being in the right place, at the right moment, with the right intention.</p>
-              </>
-            )}
+            {s.bio.map((paragraph, i) => (
+              <p key={i}>{paragraph}</p>
+            ))}
           </div>
 
           <div className="flex gap-10 py-8 border-t border-b border-bone/10">
@@ -85,7 +58,7 @@ export default function AboutClient({ settings }: { settings: any }) {
       <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} viewport={{ once: true }}>
         <p className="text-gold text-xs tracking-[0.3em] uppercase font-sans mb-8">Publications & Features</p>
         <div className="grid md:grid-cols-2 gap-px bg-bone/10">
-          {s.publications?.map((pub: any, i: number) => (
+          {s.publications.map((pub, i) => (
             <div key={i} className="bg-ink p-8 flex justify-between items-center group hover:bg-bone/5 transition-colors">
               <div>
                 <p className="font-serif italic text-bone text-xl mb-1">{pub.name}</p>

@@ -1,9 +1,7 @@
-import { getSiteSettings, urlFor } from "@/sanity/lib/client";
+import { getSiteSettings } from "@/lib/content";
 import AboutClient from "@/components/AboutClient";
 
-export const revalidate = 60;
-
 export default async function AboutPage() {
-  const settings = await getSiteSettings();
+  const settings = getSiteSettings();
   return <AboutClient settings={settings} />;
 }

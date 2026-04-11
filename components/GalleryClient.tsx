@@ -6,32 +6,17 @@ import { X, ZoomIn } from "lucide-react";
 
 const categories = ["All", "Portrait", "Street", "Editorial", "B&W", "Fashion", "Landscape", "Events"];
 
-const fallbackPhotos = [
-  { _id: "1", title: "NISCHITHA", category: "Portrait", imageUrl: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&q=80" },
-  { _id: "2", title: "Street Style", category: "Street", imageUrl: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&q=80" },
-  { _id: "3", title: "WAVES", category: "Fashion", imageUrl: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80" },
-  { _id: "4", title: "MIRA", category: "B&W", imageUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80" },
-  { _id: "5", title: "In Solitude", category: "Editorial", imageUrl: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80" },
-  { _id: "6", title: "Untitled I", category: "Portrait", imageUrl: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80" },
-  { _id: "7", title: "Urban", category: "Street", imageUrl: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&q=80" },
-  { _id: "8", title: "Quiet", category: "B&W", imageUrl: "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=800&q=80" },
-  { _id: "9", title: "The Art of Being", category: "Editorial", imageUrl: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&q=80" },
-  { _id: "10", title: "Untitled II", category: "Portrait", imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&q=80" },
-  { _id: "11", title: "Editorial I", category: "Fashion", imageUrl: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=800&q=80" },
-  { _id: "12", title: "Shadows", category: "B&W", imageUrl: "https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&q=80" },
-];
-
-interface Photo {
+interface GalleryPhoto {
   _id: string;
   title: string;
   category: string;
   imageUrl: string;
 }
 
-export default function GalleryClient({ initialPhotos }: { initialPhotos: Photo[] }) {
-  const photos = initialPhotos.length > 0 ? initialPhotos : fallbackPhotos;
+export default function GalleryClient({ initialPhotos }: { initialPhotos: GalleryPhoto[] }) {
+  const photos = initialPhotos;
   const [active, setActive] = useState("All");
-  const [selected, setSelected] = useState<Photo | null>(null);
+  const [selected, setSelected] = useState<GalleryPhoto | null>(null);
 
   const filtered = active === "All" ? photos : photos.filter((p) => p.category === active);
 
