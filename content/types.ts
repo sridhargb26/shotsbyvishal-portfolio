@@ -19,6 +19,24 @@ export interface Photo {
   description?: string;
 }
 
+export interface Slide {
+  id: string;
+  sortOrder: number;
+  mediaType: "photo" | "video";
+  url: string;
+  caption?: string;
+  active: boolean;
+}
+
+export interface Album {
+  _id: string;
+  title: string;
+  category: PhotoCategory;
+  coverUrl: string;
+  photoCount: number;
+  photos: Photo[];
+}
+
 export interface Publication {
   name: string;
   issue: string;

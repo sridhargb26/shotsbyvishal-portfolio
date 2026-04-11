@@ -9,10 +9,11 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#0a0a0a",
-        bone: "#f2ede6",
-        gold: "#c9a84c",
-        muted: "#888888",
+        ink: "#070707",
+        "ink-soft": "#121212",
+        bone: "#ebe6dc",
+        gold: "#c4a052",
+        muted: "#7a7670",
       },
       fontFamily: {
         display: ["var(--font-bebas)"],

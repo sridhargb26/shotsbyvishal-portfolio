@@ -1,4 +1,4 @@
-import { getSiteSettings, getFeaturedPhotos } from "@/lib/content";
+import { getSiteSettings, getHomepageSlides } from "@/lib/content";
 import HomeClient from "@/components/HomeClient";
 
 export const revalidate =
@@ -6,6 +6,6 @@ export const revalidate =
 
 export default async function Home() {
   const settings = getSiteSettings();
-  const featured = await getFeaturedPhotos();
-  return <HomeClient settings={settings} featured={featured} />;
+  const slides = await getHomepageSlides();
+  return <HomeClient settings={settings} slides={slides} />;
 }

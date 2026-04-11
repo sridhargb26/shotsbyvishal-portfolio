@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Instagram, Mail, Send } from "lucide-react";
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
@@ -28,119 +27,93 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="pt-28 pb-24 px-6 md:px-14">
+    <div className="flex min-h-screen flex-col items-center justify-center px-6 pb-16 pt-24 md:px-10">
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="mb-16"
+        transition={{ duration: 0.7 }}
+        className="w-full max-w-lg"
       >
-        <p className="text-gold text-xs tracking-[0.3em] uppercase font-sans mb-3">Get In Touch</p>
-        <h1 className="font-display text-[clamp(3.5rem,10vw,9rem)] leading-none text-bone">CONTACT</h1>
-      </motion.div>
+        <h1 className="font-display mb-2 text-[clamp(2.5rem,7vw,5rem)] leading-none text-bone">
+          CONTACT
+        </h1>
+        <p className="mb-10 font-sans text-sm font-light text-bone/40">
+          Available for editorial, portrait &amp; brand work.
+        </p>
 
-      <div className="grid md:grid-cols-2 gap-16">
-        {/* Left — info */}
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="flex flex-col justify-between"
-        >
-          <div className="space-y-6">
-            <p className="font-sans font-light text-bone/70 leading-relaxed text-base max-w-sm">
-              Available for editorial shoots, portrait sessions, event coverage, and brand collaborations. 
-              Let&apos;s create something unforgettable.
+        {status === "sent" ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="py-12 text-center"
+          >
+            <p className="font-serif-custom text-2xl italic text-bone/60">
+              Message sent — I&apos;ll be in touch soon.
             </p>
-            <div className="space-y-4 pt-4">
-              <a
-                href="mailto:vishal@shotsbyvishal.com"
-                className="flex items-center gap-4 text-bone/60 hover:text-gold transition-colors font-sans text-sm"
-              >
-                <Mail size={16} className="text-gold" />
-                vishal@shotsbyvishal.com
-              </a>
-              <a
-                href="https://www.instagram.com/shotsbyvishal/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-4 text-bone/60 hover:text-gold transition-colors font-sans text-sm"
-              >
-                <Instagram size={16} className="text-gold" />
-                @shotsbyvishal
-              </a>
-            </div>
-          </div>
-
-          <div className="mt-12 p-8 border border-bone/10">
-            <p className="text-gold text-xs tracking-widest uppercase font-sans mb-2">Response time</p>
-            <p className="font-display text-3xl text-bone">Within 24 hours</p>
-          </div>
-        </motion.div>
-
-        {/* Right — form */}
-        <motion.div
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-        >
+          </motion.div>
+        ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             {[
-              { name: "name", label: "Your Name", type: "text" },
-              { name: "email", label: "Email Address", type: "email" },
+              { name: "name", label: "Name", type: "text" },
+              { name: "email", label: "Email", type: "email" },
               { name: "subject", label: "Subject", type: "text" },
             ].map((field) => (
               <div key={field.name}>
-                <label className="block font-sans text-[10px] tracking-[0.2em] uppercase text-muted mb-2">
-                  {field.label}
-                </label>
                 <input
                   type={field.type}
                   required
                   value={form[field.name as keyof typeof form]}
                   onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
-                  className="w-full bg-transparent border border-bone/20 text-bone font-sans text-sm px-5 py-3 focus:outline-none focus:border-gold transition-colors placeholder:text-muted/40"
                   placeholder={field.label}
+                  className="form-input"
                 />
               </div>
             ))}
 
-            <div>
-              <label className="block font-sans text-[10px] tracking-[0.2em] uppercase text-muted mb-2">
-                Message
-              </label>
-              <textarea
-                required
-                rows={5}
-                value={form.message}
-                onChange={(e) => setForm({ ...form, message: e.target.value })}
-                className="w-full bg-transparent border border-bone/20 text-bone font-sans text-sm px-5 py-3 focus:outline-none focus:border-gold transition-colors resize-none placeholder:text-muted/40"
-                placeholder="Tell me about your project..."
-              />
+            <textarea
+              required
+              rows={5}
+              value={form.message}
+              onChange={(e) => setForm({ ...form, message: e.target.value })}
+              placeholder="Your message"
+              className="form-input resize-none"
+            />
+
+            <div className="flex items-center justify-between pt-1">
+              <button
+                type="submit"
+                disabled={status === "sending"}
+                className="font-body text-[11px] uppercase tracking-[0.25em] text-bone/50 transition-colors hover:text-gold disabled:opacity-40"
+              >
+                {status === "sending" ? "Sending…" : "Send →"}
+              </button>
+              {status === "error" && (
+                <p className="font-body text-[11px] text-red-400/70">
+                  Something went wrong.
+                </p>
+              )}
             </div>
-
-            <button
-              type="submit"
-              disabled={status === "sending"}
-              className="w-full flex items-center justify-center gap-3 bg-gold text-ink py-4 font-sans text-xs tracking-widest uppercase hover:bg-bone transition-colors disabled:opacity-60"
-            >
-              <Send size={14} />
-              {status === "sending" ? "Sending..." : "Send Message"}
-            </button>
-
-            {status === "sent" && (
-              <p className="text-center font-sans text-xs text-gold tracking-widest">
-                ✓ Message sent! I&apos;ll get back to you shortly.
-              </p>
-            )}
-            {status === "error" && (
-              <p className="text-center font-sans text-xs text-red-400 tracking-widest">
-                Something went wrong. Please email me directly.
-              </p>
-            )}
           </form>
-        </motion.div>
-      </div>
+        )}
+
+        {/* Direct contact */}
+        <div className="mt-14 space-y-2 border-t border-[var(--border)] pt-8">
+          <a
+            href="mailto:vishal@shotsbyvishal.com"
+            className="block font-body text-[11px] uppercase tracking-[0.25em] text-bone/30 transition-colors hover:text-gold"
+          >
+            vishal@shotsbyvishal.com
+          </a>
+          <a
+            href="https://www.instagram.com/shotsbyvishal/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block font-body text-[11px] uppercase tracking-[0.25em] text-bone/30 transition-colors hover:text-gold"
+          >
+            @shotsbyvishal ↗
+          </a>
+        </div>
+      </motion.div>
     </div>
   );
 }

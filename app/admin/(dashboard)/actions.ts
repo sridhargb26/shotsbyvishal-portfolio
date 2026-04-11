@@ -6,6 +6,10 @@ import { randomBytes } from "crypto";
 import { COOKIE_NAME, verifyAdminSession } from "@/lib/admin-session";
 import { createSupabaseService } from "@/lib/supabase/server";
 import { uniqueSlug } from "@/lib/slug";
+import {
+  assertAtLeastOneVisibility,
+  parseAlbumVisibilityFromForm,
+} from "@/lib/album-visibility";
 import type { PhotoCategory } from "@/content/types";
 
 const CATEGORY_OPTIONS: PhotoCategory[] = [
@@ -38,6 +42,9 @@ export async function createAlbumAction(formData: FormData) {
   const category = assertCategory(String(formData.get("category") ?? ""));
   if (!title) throw new Error("Title is required");
 
+  const vis = parseAlbumVisibilityFromForm(formData);
+  assertAtLeastOneVisibility(vis);
+
   const supabase = createSupabaseService();
   if (!supabase) throw new Error("Supabase is not configured");
 
@@ -46,10 +53,35 @@ export async function createAlbumAction(formData: FormData) {
     title,
     slug,
     category,
+    ...vis,
   });
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/albums");
+  revalidatePath("/gallery");
+  revalidatePath("/");
+}
+
+export async function updateAlbumVisibilityAction(formData: FormData) {
+  assertAdmin();
+  const albumId = String(formData.get("albumId") ?? "").trim();
+  if (!albumId) throw new Error("Missing album");
+
+  const vis = parseAlbumVisibilityFromForm(formData);
+  assertAtLeastOneVisibility(vis);
+
+  const supabase = createSupabaseService();
+  if (!supabase) throw new Error("Supabase is not configured");
+
+  const { error } = await supabase
+    .from("portfolio_albums")
+    .update(vis)
+    .eq("id", albumId);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/albums");
+  revalidatePath(`/admin/albums/${albumId}`);
   revalidatePath("/gallery");
   revalidatePath("/");
 }
@@ -194,4 +226,98 @@ export async function deleteAlbumFormAction(formData: FormData) {
   const albumId = String(formData.get("albumId") ?? "").trim();
   if (!albumId) throw new Error("Missing album");
   await deleteAlbumAction(albumId);
+}
+
+// ── HOMEPAGE SLIDES ──────────────────────────────────────────────────────────
+
+export async function uploadSlideAction(formData: FormData) {
+  assertAdmin();
+  const file = formData.get("file") as File | null;
+  if (!file || !file.size) throw new Error("File required");
+
+  const isVideo = file.type.startsWith("video/");
+  const isImage = file.type.startsWith("image/");
+  if (!isVideo && !isImage) throw new Error("Only images and videos are supported");
+
+  const supabase = createSupabaseService();
+  if (!supabase) throw new Error("Supabase is not configured");
+
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_") || "slide";
+  const path = `homepage/${randomBytes(6).toString("hex")}-${safeName}`;
+  const buf = Buffer.from(await file.arrayBuffer());
+
+  const { error: upErr } = await supabase.storage
+    .from("portfolio")
+    .upload(path, buf, { contentType: file.type, upsert: false });
+  if (upErr) throw new Error(upErr.message);
+
+  const { data: { publicUrl } } = supabase.storage.from("portfolio").getPublicUrl(path);
+
+  // Get current max sort_order
+  const { data: existing } = await supabase
+    .from("homepage_slides")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1);
+  const nextOrder = (existing?.[0]?.sort_order ?? -1) + 1;
+
+  const caption = String(formData.get("caption") ?? "").trim() || null;
+
+  const { error: insErr } = await supabase.from("homepage_slides").insert({
+    storage_path: path,
+    public_url: publicUrl,
+    media_type: isVideo ? "video" : "photo",
+    caption,
+    sort_order: nextOrder,
+    active: true,
+  });
+  if (insErr) throw new Error(insErr.message);
+
+  revalidatePath("/admin/slides");
+  revalidatePath("/");
+}
+
+export async function updateSlideAction(formData: FormData) {
+  assertAdmin();
+  const id = String(formData.get("id") ?? "").trim();
+  const caption = String(formData.get("caption") ?? "").trim() || null;
+  const active = formData.get("active") === "true";
+  const sortOrder = parseInt(String(formData.get("sort_order") ?? "0"), 10);
+
+  const supabase = createSupabaseService();
+  if (!supabase) throw new Error("Supabase is not configured");
+
+  const { error } = await supabase
+    .from("homepage_slides")
+    .update({ caption, active, sort_order: sortOrder })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/slides");
+  revalidatePath("/");
+}
+
+export async function deleteSlideAction(formData: FormData) {
+  assertAdmin();
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) throw new Error("Missing id");
+
+  const supabase = createSupabaseService();
+  if (!supabase) throw new Error("Supabase is not configured");
+
+  const { data: row } = await supabase
+    .from("homepage_slides")
+    .select("storage_path")
+    .eq("id", id)
+    .single();
+
+  if (row?.storage_path) {
+    await supabase.storage.from("portfolio").remove([row.storage_path]);
+  }
+
+  const { error } = await supabase.from("homepage_slides").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/slides");
+  revalidatePath("/");
 }

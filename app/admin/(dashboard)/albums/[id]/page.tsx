@@ -6,6 +6,7 @@ import {
   uploadPhotosAction,
   deletePhotoFormAction,
   setFeaturedFormAction,
+  updateAlbumVisibilityAction,
 } from "@/app/admin/(dashboard)/actions";
 import { mediaUrlFromStoragePath } from "@/lib/media-url";
 
@@ -19,7 +20,9 @@ export default async function AdminAlbumDetailPage({
 
   const { data: album, error: e1 } = await supabase
     .from("portfolio_albums")
-    .select("id, title, category, slug")
+    .select(
+      "id, title, category, slug, show_in_gallery, show_in_commercial, show_in_editorial"
+    )
     .eq("id", params.id)
     .single();
 
@@ -40,7 +43,49 @@ export default async function AdminAlbumDetailPage({
         / {album.category}
       </p>
       <h1 className="font-display text-4xl md:text-5xl mb-2">{album.title}</h1>
-      <p className="text-bone/45 text-sm mb-10">Slug: {album.slug}</p>
+      <p className="text-bone/45 text-sm mb-6">Slug: {album.slug}</p>
+
+      <section className="mb-10 border border-bone/10 p-6 max-w-lg">
+        <h2 className="text-[10px] tracking-[0.3em] uppercase text-bone/40 mb-4">
+          Where this album appears
+        </h2>
+        <form action={updateAlbumVisibilityAction} className="space-y-3">
+          <input type="hidden" name="albumId" value={album.id} />
+          <label className="flex items-center gap-3 text-sm text-bone/80 cursor-pointer">
+            <input
+              type="checkbox"
+              name="show_in_gallery"
+              defaultChecked={album.show_in_gallery !== false}
+              className="accent-gold"
+            />
+            Main gallery
+          </label>
+          <label className="flex items-center gap-3 text-sm text-bone/80 cursor-pointer">
+            <input
+              type="checkbox"
+              name="show_in_commercial"
+              defaultChecked={album.show_in_commercial === true}
+              className="accent-gold"
+            />
+            Commercial
+          </label>
+          <label className="flex items-center gap-3 text-sm text-bone/80 cursor-pointer">
+            <input
+              type="checkbox"
+              name="show_in_editorial"
+              defaultChecked={album.show_in_editorial === true}
+              className="accent-gold"
+            />
+            Editorial
+          </label>
+          <button
+            type="submit"
+            className="mt-2 border border-gold/60 text-gold px-4 py-2 text-[11px] tracking-widest uppercase hover:bg-gold hover:text-ink transition-colors"
+          >
+            Save visibility
+          </button>
+        </form>
+      </section>
 
       <section className="mb-12 border border-bone/10 p-6">
         <h2 className="text-[10px] tracking-[0.3em] uppercase text-bone/40 mb-4">

@@ -18,7 +18,9 @@ export default async function AdminAlbumsPage() {
     ? (
         await supabase
           .from("portfolio_albums")
-          .select("id, title, slug, category, created_at")
+          .select(
+            "id, title, slug, category, created_at, show_in_gallery, show_in_commercial, show_in_editorial"
+          )
           .order("created_at", { ascending: false })
       ).data
     : null;
@@ -31,7 +33,7 @@ export default async function AdminAlbumsPage() {
         <h2 className="text-[10px] tracking-[0.3em] uppercase text-bone/40 mb-4">
           New album
         </h2>
-        <form action={createAlbumAction} className="flex flex-col gap-4 max-w-md">
+        <form action={createAlbumAction} className="flex flex-col gap-4 max-w-lg">
           <label className="text-sm text-bone/70">
             Title
             <input
@@ -54,6 +56,31 @@ export default async function AdminAlbumsPage() {
               ))}
             </select>
           </label>
+          <fieldset className="border border-bone/15 p-4 space-y-3">
+            <legend className="text-[10px] tracking-[0.25em] uppercase text-bone/45 px-1">
+              Show this album on
+            </legend>
+            <p className="text-xs text-bone/50 mb-2">
+              Pick at least one. Main gallery drives /gallery and home featured.
+            </p>
+            <label className="flex items-center gap-3 text-sm text-bone/80 cursor-pointer">
+              <input
+                type="checkbox"
+                name="show_in_gallery"
+                defaultChecked
+                className="accent-gold"
+              />
+              Main gallery
+            </label>
+            <label className="flex items-center gap-3 text-sm text-bone/80 cursor-pointer">
+              <input type="checkbox" name="show_in_commercial" className="accent-gold" />
+              Commercial
+            </label>
+            <label className="flex items-center gap-3 text-sm text-bone/80 cursor-pointer">
+              <input type="checkbox" name="show_in_editorial" className="accent-gold" />
+              Editorial
+            </label>
+          </fieldset>
           <button
             type="submit"
             className="self-start border border-gold text-gold px-6 py-2 text-[11px] tracking-widest uppercase hover:bg-gold hover:text-ink transition-colors"
@@ -85,6 +112,17 @@ export default async function AdminAlbumsPage() {
                   </Link>
                   <p className="text-xs text-bone/45 mt-1">
                     {a.category} · {new Date(a.created_at).toLocaleDateString()}
+                  </p>
+                  <p className="text-[10px] tracking-widest uppercase text-bone/35 mt-2 flex flex-wrap gap-2">
+                    {a.show_in_gallery !== false ? (
+                      <span className="border border-bone/20 px-2 py-0.5">Gallery</span>
+                    ) : null}
+                    {a.show_in_commercial ? (
+                      <span className="border border-bone/20 px-2 py-0.5">Commercial</span>
+                    ) : null}
+                    {a.show_in_editorial ? (
+                      <span className="border border-bone/20 px-2 py-0.5">Editorial</span>
+                    ) : null}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">

@@ -25,6 +25,9 @@ export default function AdminDashboardLayout({
           <Link href="/admin/albums" className="text-bone/60 hover:text-bone">
             Albums
           </Link>
+          <Link href="/admin/slides" className="text-bone/60 hover:text-bone">
+            Home Slides
+          </Link>
           <Link href="/" className="text-bone/40 hover:text-bone">
             View site
           </Link>

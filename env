@@ -1,0 +1,21 @@
+# Local only — gitignored. Rotate keys in Supabase if this file was ever shared.
+
+# Supabase (Project Settings → API) — three separate variables, not merged names
+NEXT_PUBLIC_SUPABASE_URL=https://okvxjhupychbbifdgzce.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rdnhqaHVweWNoYmJpZmRnemNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4Nzg1NjUsImV4cCI6MjA5MTQ1NDU2NX0.hhqCwdlG-k-AakBKLXFgrmwWgwxzOZGUr5DuTG3NwO0
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rdnhqaHVweWNoYmJpZmRnemNlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTg3ODU2NSwiZXhwIjoyMDkxNDU0NTY1fQ.ZpAyCy0yFpcJOeLeI_AGvb0vULsQnZQ3v9q1xn4cTew
+
+# Admin UI — set a strong password (required for /admin/login)
+ADMIN_PASSWORD=test123$
+ADMIN_SESSION_SECRET=50f0440a11443e0643d192852412d185c6c7e0fd3c320ca3623a97a0d3cba73d
+
+CONTENT_SOURCE=supabase
+CONTENT_REVALIDATE_SECONDS=
+
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+EMAIL_USER=
+EMAIL_PASS=
+EMAIL_TO=

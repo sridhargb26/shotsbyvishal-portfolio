@@ -1,91 +1,261 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { X, ZoomIn } from "lucide-react";
+import { X, ArrowLeft } from "lucide-react";
+import type { Album, Photo } from "@/content/types";
 
-const categories = ["All", "Portrait", "Street", "Editorial", "B&W", "Fashion", "Landscape", "Events"];
+type View = "albums" | "photos";
 
-interface GalleryPhoto {
-  _id: string;
-  title: string;
-  category: string;
-  imageUrl: string;
-}
+export default function GalleryClient({ albums }: { albums: Album[] }) {
+  const [view, setView] = useState<View>("albums");
+  const [activeAlbum, setActiveAlbum] = useState<Album | null>(null);
+  const [selected, setSelected] = useState<Photo | null>(null);
+  const [lightboxIdx, setLightboxIdx] = useState(0);
 
-export default function GalleryClient({ initialPhotos }: { initialPhotos: GalleryPhoto[] }) {
-  const photos = initialPhotos;
-  const [active, setActive] = useState("All");
-  const [selected, setSelected] = useState<GalleryPhoto | null>(null);
+  const openAlbum = (album: Album) => {
+    setActiveAlbum(album);
+    setView("photos");
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
 
-  const filtered = active === "All" ? photos : photos.filter((p) => p.category === active);
+  const closeAlbum = () => {
+    setView("albums");
+    setActiveAlbum(null);
+  };
+
+  const openLightbox = (photo: Photo, idx: number) => {
+    setSelected(photo);
+    setLightboxIdx(idx);
+  };
+
+  const closeLightbox = () => setSelected(null);
+
+  const photos = activeAlbum?.photos ?? [];
+
+  const lightboxNext = useCallback(() => {
+    const next = (lightboxIdx + 1) % photos.length;
+    setLightboxIdx(next);
+    setSelected(photos[next]);
+  }, [lightboxIdx, photos]);
+
+  const lightboxPrev = useCallback(() => {
+    const prev = (lightboxIdx - 1 + photos.length) % photos.length;
+    setLightboxIdx(prev);
+    setSelected(photos[prev]);
+  }, [lightboxIdx, photos]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!selected) return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowRight") lightboxNext();
+      if (e.key === "ArrowLeft") lightboxPrev();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected, lightboxNext, lightboxPrev]);
+
+  // Lock scroll in lightbox
+  useEffect(() => {
+    if (!selected) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [selected]);
 
   return (
-    <div className="pt-28 pb-24 px-6 md:px-14">
-      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="mb-12">
-        <p className="text-gold text-xs tracking-[0.3em] uppercase font-sans mb-3">The Work</p>
-        <h1 className="font-display text-[clamp(3.5rem,10vw,9rem)] leading-none text-bone mb-10">GALLERY</h1>
+    <div className="px-6 pb-24 pt-24 md:px-10 lg:px-14">
 
-        <div className="flex flex-wrap gap-3">
-          {categories.map((cat) => (
-            <button key={cat} onClick={() => setActive(cat)}
-              className={`font-sans text-[11px] tracking-[0.2em] uppercase px-5 py-2 border transition-all duration-300 ${
-                active === cat ? "border-gold bg-gold text-ink" : "border-bone/20 text-bone/50 hover:border-bone/50 hover:text-bone"
-              }`}>
-              {cat}
-            </button>
-          ))}
-        </div>
-      </motion.div>
+      {/* ── ALBUM GRID ── */}
+      <AnimatePresence mode="wait">
+        {view === "albums" && (
+          <motion.div
+            key="albums"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Header */}
+            <div className="mb-12 md:mb-16">
+              <p className="font-body mb-2 text-[9px] uppercase tracking-[0.35em] text-muted">
+                Photography
+              </p>
+              <h1 className="font-display text-[clamp(2.5rem,8vw,6rem)] leading-none text-bone">
+                Work
+              </h1>
+            </div>
 
-      {/* Masonry Grid */}
-      <div className="columns-1 sm:columns-2 lg:columns-3 gap-3 space-y-3">
-        <AnimatePresence>
-          {filtered.map((photo, i) => (
-            <motion.div key={photo._id} layout
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.4, delay: i * 0.04 }}
-              className="relative break-inside-avoid overflow-hidden group cursor-pointer"
-              onClick={() => setSelected(photo)}>
-              <Image src={photo.imageUrl} alt={photo.title} width={800} height={600}
-                className="w-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/50 transition-all duration-500 flex items-center justify-center">
-                <ZoomIn className="text-bone opacity-0 group-hover:opacity-100 transition-opacity duration-300" size={28} />
+            {/* Albums — two-column on mobile, three on desktop */}
+            <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3">
+              {albums.map((album, i) => (
+                <motion.button
+                  key={album._id}
+                  type="button"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: i * 0.05 }}
+                  onClick={() => openAlbum(album)}
+                  className="group relative cursor-pointer overflow-hidden text-left"
+                >
+                  {/* Cover image */}
+                  <div className="relative aspect-[3/4] overflow-hidden bg-ink-soft">
+                    <Image
+                      src={album.coverUrl}
+                      alt={album.title}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                      sizes="(max-width: 768px) 50vw, 33vw"
+                    />
+                    {/* Gradient */}
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#070707]/80 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                  </div>
+
+                  {/* Label */}
+                  <div className="mt-3 flex items-baseline justify-between">
+                    <span className="font-display text-[clamp(1rem,2.5vw,1.4rem)] leading-none text-bone transition-colors group-hover:text-gold">
+                      {album.title.toUpperCase()}
+                    </span>
+                    <span className="font-body text-[9px] tabular-nums tracking-widest text-muted">
+                      {album.photoCount}
+                    </span>
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── PHOTO GRID (inside album) ── */}
+        {view === "photos" && activeAlbum && (
+          <motion.div
+            key="photos"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Header */}
+            <div className="mb-10 flex items-start justify-between md:mb-12">
+              <div>
+                <button
+                  type="button"
+                  onClick={closeAlbum}
+                  className="mb-4 flex items-center gap-2 font-body text-[9px] uppercase tracking-[0.3em] text-muted transition-colors hover:text-bone"
+                >
+                  <ArrowLeft size={12} strokeWidth={1.5} />
+                  All Work
+                </button>
+                <h1 className="font-display text-[clamp(2.5rem,8vw,6rem)] leading-none text-bone">
+                  {activeAlbum.title.toUpperCase()}
+                </h1>
+                <p className="mt-2 font-body text-[9px] uppercase tracking-[0.3em] text-muted">
+                  {activeAlbum.photoCount} {activeAlbum.photoCount === 1 ? "photo" : "photos"}
+                </p>
               </div>
-              <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                <p className="text-gold text-[10px] tracking-widest uppercase font-sans">{photo.category}</p>
-                <p className="text-bone font-display text-xl">{photo.title}</p>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+            </div>
 
-      {filtered.length === 0 && (
-        <div className="text-center py-24">
-          <p className="font-display text-3xl text-bone/20">No photos in this category yet</p>
-        </div>
-      )}
+            {/* Masonry */}
+            <div className="columns-1 gap-1.5 space-y-1.5 sm:columns-2 lg:columns-3">
+              {photos.map((photo, i) => (
+                <motion.div
+                  key={photo._id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.35, delay: i * 0.03 }}
+                  className="group relative cursor-pointer overflow-hidden break-inside-avoid bg-ink-soft"
+                  onClick={() => openLightbox(photo, i)}
+                >
+                  <Image
+                    src={photo.imageUrl}
+                    alt={photo.title}
+                    width={800}
+                    height={600}
+                    className="w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                  />
+                  <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-[#070707]/70 via-transparent to-transparent opacity-0 transition-opacity duration-400 group-hover:opacity-100">
+                    <div className="p-4 pb-5">
+                      <p className="font-serif-custom text-sm italic text-bone/80">{photo.title}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Lightbox */}
+      {/* ── LIGHTBOX ── */}
       <AnimatePresence>
         {selected && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-ink/95 backdrop-blur-sm flex items-center justify-center p-6"
-            onClick={() => setSelected(null)}>
-            <button className="absolute top-8 right-8 text-bone/60 hover:text-gold transition-colors" onClick={() => setSelected(null)}>
-              <X size={28} />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-[#070707]/97 backdrop-blur-sm"
+            onClick={closeLightbox}
+          >
+            {/* Close */}
+            <button
+              type="button"
+              aria-label="Close"
+              className="absolute right-5 top-5 p-2 text-bone/40 transition-colors hover:text-bone md:right-8 md:top-8"
+              onClick={closeLightbox}
+            >
+              <X size={20} strokeWidth={1} />
             </button>
-            <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.92, opacity: 0 }} transition={{ duration: 0.3 }}
-              className="relative max-h-[85vh] max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
-              <Image src={selected.imageUrl} alt={selected.title} width={1200} height={900}
-                className="object-contain max-h-[80vh] w-full" />
-              <div className="mt-4 text-center">
-                <p className="text-gold text-[10px] tracking-widest uppercase font-sans">{selected.category}</p>
-                <p className="text-bone font-display text-2xl">{selected.title}</p>
+
+            {/* Prev */}
+            {photos.length > 1 && (
+              <button
+                type="button"
+                aria-label="Previous"
+                onClick={(e) => { e.stopPropagation(); lightboxPrev(); }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 font-body text-[11px] uppercase tracking-[0.2em] text-bone/30 transition-colors hover:text-bone md:left-8"
+              >
+                ←
+              </button>
+            )}
+
+            {/* Image */}
+            <motion.div
+              key={selected._id}
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.2 }}
+              className="flex max-h-[90vh] max-w-5xl flex-col items-center gap-3 px-16"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                src={selected.imageUrl}
+                alt={selected.title}
+                width={1400}
+                height={1000}
+                className="max-h-[82vh] w-auto object-contain"
+              />
+              <div className="flex w-full items-center justify-between">
+                <p className="font-serif-custom text-sm italic text-bone/50">{selected.title}</p>
+                <p className="font-body text-[9px] tabular-nums tracking-widest text-muted">
+                  {lightboxIdx + 1} / {photos.length}
+                </p>
               </div>
             </motion.div>
+
+            {/* Next */}
+            {photos.length > 1 && (
+              <button
+                type="button"
+                aria-label="Next"
+                onClick={(e) => { e.stopPropagation(); lightboxNext(); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 font-body text-[11px] uppercase tracking-[0.2em] text-bone/30 transition-colors hover:text-bone md:right-8"
+              >
+                →
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
